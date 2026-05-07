@@ -173,19 +173,27 @@
             if (formFail) formFail.style.display = 'none';
 
             try {
-                // Build mailto link as fallback (since we don't have a backend)
-                const mailtoSubject = encodeURIComponent(subject);
-                const mailtoBody = encodeURIComponent(
-                    `Nom: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
-                );
-                window.location.href = `mailto:nesway.pro@gmail.com?subject=${mailtoSubject}&body=${mailtoBody}`;
+                const formData = new FormData(contactForm);
 
-                // Show success
+                const response = await fetch("/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: new URLSearchParams(formData).toString()
+                });
+
+                if (!response.ok) {
+                    throw new Error("Erreur lors de l'envoi du formulaire");
+                }
+
                 if (formSuccess) {
                     formSuccess.style.display = 'flex';
                     formSuccess.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
+
                 contactForm.reset();
+
             } catch (err) {
                 if (formFail) {
                     formFail.style.display = 'block';
