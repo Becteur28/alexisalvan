@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Montage Vidéo — Alexi Salvan</title>
+    <meta name="description" content="Montage Vidéo par Alexi Salvan.">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+</head>
+<body>
+
+    <!-- BOUTON RETOUR -->
+    <a href="javascript:history.back()" class="project-back-btn" aria-label="Retour à la page précédente">
+        ← Retour
+    </a>
+
+    <!-- PAGE PROJET -->
+    <main class="project-page">
+        <section class="project-hero">
+            <div class="container">
+                <p class="project-eyebrow">Photographies</p>
+                <h1>Photo & Retouche</h1>
+                <p class="project-intro">
+                    Retrouvez ici une sélection de mes photos avec des retouches de fond, de lumière et correcteur de défaut. Le matériel utilisé pour ces photos est un iPhone 16 avec un trépied et des lumières de travail.
+                </p>
+            </div>
+        </section>
+
+        <section class="project-gallery-section">
+            <div class="container">
+
+                <div class="gallery-layout">
+
+                    <!-- VIDÉO PRINCIPALE -->
+                    <div class="gallery-main">
+                        <button class="gallery-arrow gallery-arrow-left" id="prevImage" aria-label="Image précédente">
+                            ‹
+                        </button>
+
+                        <video 
+                            id="mainGalleryImage"
+                            class="gallery-main-img"
+                            autoplay
+                            loop
+                            muted
+                            playsinline
+                        >
+                            <source src="assets/video/1.mp4" type="video/mp4">
+                            Votre navigateur ne supporte pas la vidéo.
+                        </video>
+
+                        <button class="gallery-arrow gallery-arrow-right" id="nextImage" aria-label="Image suivante">
+                            ›
+                        </button>
+                    </div>
+
+                    <!-- MINIATURES -->
+                    <div class="gallery-thumbnails" id="galleryThumbnails">
+                        <button class="gallery-thumb active" data-index="0">
+                            <img src="assets/video/1.jpg" alt="Miniature Vidéo 1">
+                        </button>
+
+                        <button class="gallery-thumb" data-index="1">
+                            <img src="assets/video/2.png" alt="Miniature Vidéo 2">
+                        </button>
+
+                        <button class="gallery-thumb" data-index="2">
+                            <img src="assets/video/3.png" alt="Miniature Vidéo 3">
+                        </button>
+                    </div>
+
+                </div>
+
+                <div class="project-description">
+                    <h2>À propos du projet</h2>
+                    <p>
+                        Ce projet regroupe plusieurs travaux de photographie et de retouche visant à créer des visuels esthétiques, harmonieux et adaptés à différents supports.
+                    </p>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const images = [
+            {
+                src: "assets/video/1.mp4",
+                alt: "Vidéo 1"
+            },
+            {
+                src: "assets/video/2.mp4",
+                alt: "Vidéo 2"
+            },
+            {
+                src: "assets/video/3.mp4",
+                alt: "Vidéo 3"
+            }
+        ];
+
+        let currentIndex = 0;
+
+        const mainImage = document.getElementById("mainGalleryImage");
+        const mainSource = mainImage.querySelector("source");
+
+        const prevButton = document.getElementById("prevImage");
+        const nextButton = document.getElementById("nextImage");
+        const thumbnails = document.querySelectorAll(".gallery-thumb");
+
+        function updateGallery(index) {
+            currentIndex = index;
+
+            mainSource.src = images[currentIndex].src;
+            mainImage.setAttribute("aria-label", images[currentIndex].alt);
+
+            mainImage.load();
+
+            const playPromise = mainImage.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(() => {
+                    // L'autoplay peut être bloqué selon le navigateur
+                });
+            }
+
+            thumbnails.forEach((thumb, i) => {
+                thumb.classList.toggle("active", i === currentIndex);
+            });
+        }
+
+        prevButton.addEventListener("click", () => {
+            const newIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1;
+            updateGallery(newIndex);
+        });
+
+        nextButton.addEventListener("click", () => {
+            const newIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1;
+            updateGallery(newIndex);
+        });
+
+        thumbnails.forEach((thumb) => {
+            thumb.addEventListener("click", () => {
+                const index = Number(thumb.dataset.index);
+                updateGallery(index);
+            });
+        });
+    </script>
+
+</body>
+</html>

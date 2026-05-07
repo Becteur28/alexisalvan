@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo & Retouche — Alexi Salvan</title>
+    <meta name="description" content="Galerie de Photos par Alexi Salvan.">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+</head>
+<body>
+
+    <!-- BOUTON RETOUR -->
+    <a href="javascript:history.back()" class="project-back-btn" aria-label="Retour à la page précédente">
+        ← Retour
+    </a>
+
+    <!-- PAGE PROJET -->
+    <main class="project-page">
+        <section class="project-hero">
+            <div class="container">
+                <p class="project-eyebrow">Photographies</p>
+                <h1>Photo & Retouche</h1>
+                <p class="project-intro">
+                    Retrouvez ici une sélection de mes photos avec des retouches de fond, de lumière et correcteur de défaut. Le matériel utiliser pour ces photos est un iPhone 16 avec un trépied et des lumière de travail.
+                </p>
+            </div>
+        </section>
+
+        <section class="project-gallery-section">
+            <div class="container">
+
+                <div class="gallery-layout">
+
+                    <!-- IMAGE PRINCIPALE -->
+                    <div class="gallery-main">
+                        <button class="gallery-arrow gallery-arrow-left" id="prevImage" aria-label="Image précédente">
+                            ‹
+                        </button>
+
+                        <img 
+                            src="assets/photo/1.png" 
+                            alt="Photo 1" 
+                            id="mainGalleryImage"
+                            class="gallery-main-img"
+                        >
+
+                        <button class="gallery-arrow gallery-arrow-right" id="nextImage" aria-label="Image suivante">
+                            ›
+                        </button>
+                    </div>
+
+                    <!-- MINIATURES -->
+                    <div class="gallery-thumbnails" id="galleryThumbnails">
+                        <button class="gallery-thumb active" data-index="0">
+                            <img src="assets/photo/1.png" alt="Miniature Photo 1">
+                        </button>
+
+                        <button class="gallery-thumb" data-index="1">
+                            <img src="assets/photo/2.png" alt="Miniature Photo 2">
+                        </button>
+
+                        <button class="gallery-thumb" data-index="2">
+                            <img src="assets/photo/3.png" alt="Miniature Photo 3">
+                        </button>
+
+                        <button class="gallery-thumb" data-index="3">
+                            <img src="assets/photo/4.png" alt="Miniature Photo 4">
+                        </button>
+
+                        <button class="gallery-thumb" data-index="4">
+                            <img src="assets/photo/5.png" alt="Miniature Photo 5">
+                        </button>
+
+                        <button class="gallery-thumb" data-index="5">
+                            <img src="assets/photo/6.png" alt="Miniature Photo 6">
+                        </button>
+
+                        <button class="gallery-thumb" data-index="6">
+                            <img src="assets/photo/7.png" alt="Miniature Photo 7">
+                        </button>
+
+                        <button class="gallery-thumb" data-index="7">
+                            <img src="assets/photo/8.png" alt="Miniature Photo 8">
+                        </button>
+                    </div>
+
+                </div>
+
+                <div class="project-description">
+                    <h2>À propos du projet</h2>
+                    <p>
+                        Ce projet regroupe plusieurs travaux de photographie et de retouche visant à créer des visuels esthétiques, harmonieux et adaptés à différents supports.
+
+                    </p>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const images = [
+            {
+                src: "assets/photo/1.png",
+                alt: "Photo 1"
+            },
+            {
+                src: "assets/photo/2.png",
+                alt: "Photo 2"
+            },
+            {
+                src: "assets/photo/3.png",
+                alt: "Photo 3"
+            },
+            {
+                src: "assets/photo/4.png",
+                alt: "Photo 4"
+            },
+            {
+                src: "assets/photo/5.png",
+                alt: "Photo 5"
+            },
+            {
+                src: "assets/photo/6.png",
+                alt: "Photo 6"
+            },
+            {
+                src: "assets/photo/7.png",
+                alt: "Photo 7"
+            },
+            {
+                src: "assets/photo/8.png",
+                alt: "Photo 8"
+            }
+            
+        ];
+
+        let currentIndex = 0;
+
+        const mainImage = document.getElementById("mainGalleryImage");
+        const prevButton = document.getElementById("prevImage");
+        const nextButton = document.getElementById("nextImage");
+        const thumbnails = document.querySelectorAll(".gallery-thumb");
+
+        function updateGallery(index) {
+            currentIndex = index;
+
+            mainImage.src = images[currentIndex].src;
+            mainImage.alt = images[currentIndex].alt;
+
+            thumbnails.forEach((thumb, i) => {
+                thumb.classList.toggle("active", i === currentIndex);
+            });
+        }
+
+        prevButton.addEventListener("click", () => {
+            const newIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1;
+            updateGallery(newIndex);
+        });
+
+        nextButton.addEventListener("click", () => {
+            const newIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1;
+            updateGallery(newIndex);
+        });
+
+        thumbnails.forEach((thumb) => {
+            thumb.addEventListener("click", () => {
+                const index = Number(thumb.dataset.index);
+                updateGallery(index);
+            });
+        });
+    </script>
+
+</body>
+</html>

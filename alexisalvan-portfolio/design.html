@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projet Flyers — Alexi Salvan</title>
+    <meta name="description" content="Galerie du projet Flyers par Alexi Salvan.">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+</head>
+<body>
+
+    <!-- BOUTON RETOUR -->
+    <a href="javascript:history.back()" class="project-back-btn" aria-label="Retour à la page précédente">
+        ← Retour
+    </a>
+
+    <!-- PAGE PROJET -->
+    <main class="project-page">
+        <section class="project-hero">
+            <div class="container">
+                <p class="project-eyebrow">Projet graphique</p>
+                <h1>Design Graphique</h1>
+                <p class="project-intro">
+                    Retrouvez ici une sélection de mes créations graphiques effectuées pour des clients ou moi même.
+                </p>
+            </div>
+        </section>
+
+        <section class="project-gallery-section">
+            <div class="container">
+
+                <div class="gallery-layout">
+
+                    <!-- IMAGE PRINCIPALE -->
+                    <div class="gallery-main">
+                        <button class="gallery-arrow gallery-arrow-left" id="prevImage" aria-label="Image précédente">
+                            ‹
+                        </button>
+
+                        <img 
+                            src="assets/design/1.png" 
+                            alt="Design 1" 
+                            id="mainGalleryImage"
+                            class="gallery-main-img"
+                        >
+
+                        <button class="gallery-arrow gallery-arrow-right" id="nextImage" aria-label="Image suivante">
+                            ›
+                        </button>
+                    </div>
+
+                    <!-- MINIATURES -->
+                    <div class="gallery-thumbnails" id="galleryThumbnails">
+                        <button class="gallery-thumb active" data-index="0">
+                            <img src="assets/design/1.png" alt="Miniature design 1">
+                        </button>
+
+                        <button class="gallery-thumb" data-index="1">
+                            <img src="assets/design/2.png" alt="Miniature design 2">
+                        </button>
+
+                        <button class="gallery-thumb" data-index="2">
+                            <img src="assets/design/3.png" alt="Miniature design 3">
+                        </button>
+
+                        <button class="gallery-thumb" data-index="3">
+                            <img src="assets/design/4.png" alt="Miniature design 4">
+                        </button>
+
+                        <button class="gallery-thumb" data-index="4">
+                            <img src="assets/design/5.png" alt="Miniature design 5">
+                        </button>
+
+                        <button class="gallery-thumb" data-index="5">
+                            <img src="assets/design/6.png" alt="Miniature design 6">
+                        </button>
+
+                        <button class="gallery-thumb" data-index="6">
+                            <img src="assets/design/7.png" alt="Miniature design 7">
+                        </button>
+
+                        <button class="gallery-thumb" data-index="7">
+                            <img src="assets/design/8.png" alt="Miniature design 8">
+                        </button>
+                    </div>
+
+                </div>
+
+                <div class="project-description">
+                    <h2>À propos du projet</h2>
+                    <p>
+                        Ce projet regroupe plusieurs créations réalisées autour du design graphique et de l’identité visuelle.
+                        L’objectif était de concevoir des visuels modernes, cohérents et impactants, adaptés à différents supports de communication.
+
+                    </p>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const images = [
+            {
+                src: "assets/design/1.png",
+                alt: "Design 1"
+            },
+            {
+                src: "assets/design/2.png",
+                alt: "Design 2"
+            },
+            {
+                src: "assets/design/3.png",
+                alt: "Design 3"
+            },
+            {
+                src: "assets/design/4.png",
+                alt: "Design 4"
+            },
+            {
+                src: "assets/design/5.png",
+                alt: "Design 5"
+            },
+            {
+                src: "assets/design/6.png",
+                alt: "Design 6"
+            },
+            {
+                src: "assets/design/7.png",
+                alt: "Design 7"
+            },
+            {
+                src: "assets/design/8.png",
+                alt: "Design 8"
+            }
+            
+        ];
+
+        let currentIndex = 0;
+
+        const mainImage = document.getElementById("mainGalleryImage");
+        const prevButton = document.getElementById("prevImage");
+        const nextButton = document.getElementById("nextImage");
+        const thumbnails = document.querySelectorAll(".gallery-thumb");
+
+        function updateGallery(index) {
+            currentIndex = index;
+
+            mainImage.src = images[currentIndex].src;
+            mainImage.alt = images[currentIndex].alt;
+
+            thumbnails.forEach((thumb, i) => {
+                thumb.classList.toggle("active", i === currentIndex);
+            });
+        }
+
+        prevButton.addEventListener("click", () => {
+            const newIndex = currentIndex === 0 ? images.length - 1 : currentIndex - 1;
+            updateGallery(newIndex);
+        });
+
+        nextButton.addEventListener("click", () => {
+            const newIndex = currentIndex === images.length - 1 ? 0 : currentIndex + 1;
+            updateGallery(newIndex);
+        });
+
+        thumbnails.forEach((thumb) => {
+            thumb.addEventListener("click", () => {
+                const index = Number(thumb.dataset.index);
+                updateGallery(index);
+            });
+        });
+    </script>
+
+</body>
+</html>
