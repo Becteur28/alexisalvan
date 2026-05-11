@@ -93,56 +93,102 @@
 
                 <!-- Contact Form -->
                 <div class="contact-form-wrap reveal">
-                    <form id="contactForm" class="contact-form" name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
+                    <form 
+                        id="contactForm" 
+                        class="contact-form" 
+                        name="contact" 
+                        method="POST" 
+                        data-netlify="true" 
+                        data-netlify-recaptcha="true"
+                        netlify-honeypot="bot-field"
+>
                         <input type="hidden" name="form-name" value="contact">
 
                         <p class="hidden">
                             <label>
-                                Ne pas remplir : <input name="bot-field">
+                                Ne pas remplir : <input name="bot-field" autocomplete="off">
                             </label>
                         </p>
 
                         <div class="form-group">
                             <label for="name">Votre nom</label>
-                            <input type="text" id="name" name="name" placeholder="Comment vous appelez-vous ?" required autocomplete="name">
+                            <input 
+                                type="text" 
+                                id="name" 
+                                name="name" 
+                                placeholder="Comment vous appelez-vous ?" 
+                                required 
+                                autocomplete="name"
+                            >
                             <span class="form-error" id="nameError"></span>
                         </div>
 
                         <div class="form-group">
                             <label for="email">Votre email</label>
-                            <input type="email" id="email" name="email" placeholder="votre@email.com" required autocomplete="email">
+                            <input 
+                                type="email" 
+                                id="email" 
+                                name="email" 
+                                placeholder="votre@email.com" 
+                                required 
+                                autocomplete="email"
+                            >
                             <span class="form-error" id="emailError"></span>
                         </div>
 
                         <div class="form-group">
                             <label for="subject">Sujet</label>
-                            <input type="text" id="subject" name="subject" placeholder="De quoi s'agit-il ?" required>
+                            <input 
+                                type="text" 
+                                id="subject" 
+                                name="subject" 
+                                placeholder="De quoi s'agit-il ?" 
+                                required
+                            >
                             <span class="form-error" id="subjectError"></span>
                         </div>
 
                         <div class="form-group">
                             <label for="message">Votre message</label>
-                            <textarea id="message" name="message" rows="6" placeholder="Décrivez votre projet ou votre demande..." required></textarea>
+                            <textarea 
+                                id="message" 
+                                name="message" 
+                                rows="6" 
+                                placeholder="Décrivez votre projet ou votre demande..." 
+                                required
+                            ></textarea>
                             <span class="form-error" id="messageError"></span>
+                        </div>
+
+                        <!-- CAPTCHA Netlify -->
+                        <div class="form-group captcha-group">
+                            <div data-netlify-recaptcha="true"></div>
                         </div>
 
                         <button type="submit" class="btn btn-primary btn-full" id="submitBtn">
                             <span class="btn-text">Envoyer le message</span>
                             <span class="btn-loading" style="display:none;">
-                                <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" stroke-opacity="1"/></svg>
+                                <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" stroke-opacity="0.25"/>
+                                    <path d="M12 2a10 10 0 0 1 10 10" stroke-opacity="1"/>
+                                </svg>
                                 Envoi en cours...
                             </span>
                         </button>
 
                         <div class="form-success" id="formSuccess" style="display:none;">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
                             Message envoyé avec succès ! Je vous réponds rapidement.
                         </div>
 
                         <div class="form-fail" id="formFail" style="display:none;">
-                            Une erreur est survenue. Envoyez-moi directement un email : <a href="mailto:nesway.pro@gmail.com">nesway.pro@gmail.com</a>
+                            Une erreur est survenue. Envoyez-moi directement un email : 
+                            <a href="mailto:nesway.pro@gmail.com">nesway.pro@gmail.com</a>
                         </div>
                     </form>
+
                 </div>
             </div>
         </div>
