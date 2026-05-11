@@ -101,123 +101,168 @@
         });
     }
 
-    // ── CONTACT FORM ──
-    const contactForm = document.getElementById('contactForm');
+// ── CONTACT FORM AJAX NETLIFY ──
+const contactForm = document.getElementById('contactForm');
 
-    if (contactForm) {
-        const submitBtn = document.getElementById('submitBtn');
-        const btnText = submitBtn ? submitBtn.querySelector('.btn-text') : null;
-        const btnLoading = submitBtn ? submitBtn.querySelector('.btn-loading') : null;
+if (contactForm) {
+    const submitBtn = document.getElementById('submitBtn');
+    const btnText = submitBtn ? submitBtn.querySelector('.btn-text') : null;
+    const btnLoading = submitBtn ? submitBtn.querySelector('.btn-loading') : null;
+    const formSuccess = document.getElementById('formSuccess');
+    const formFail = document.getElementById('formFail');
 
-        function validateEmail(email) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        }
-
-        function showError(fieldId, msg) {
-            const field = document.getElementById(fieldId);
-            const error = document.getElementById(fieldId + 'Error');
-            const group = field ? field.closest('.form-group') : null;
-
-            if (group) {
-                group.classList.add('has-error');
-            }
-
-            if (error) {
-                error.textContent = msg;
-                error.style.display = 'block';
-            }
-        }
-
-        function clearError(fieldId) {
-            const field = document.getElementById(fieldId);
-            const error = document.getElementById(fieldId + 'Error');
-            const group = field ? field.closest('.form-group') : null;
-
-            if (group) {
-                group.classList.remove('has-error');
-            }
-
-            if (error) {
-                error.textContent = '';
-                error.style.display = 'none';
-            }
-        }
-
-        // Live validation
-        ['name', 'email', 'subject', 'message'].forEach(id => {
-            const field = document.getElementById(id);
-
-            if (field) {
-                field.addEventListener('input', () => clearError(id));
-            }
-        });
-
-        contactForm.addEventListener('submit', function(e) {
-            // Clear previous errors
-            ['name', 'email', 'subject', 'message'].forEach(clearError);
-
-            const nameField = document.getElementById('name');
-            const emailField = document.getElementById('email');
-            const subjectField = document.getElementById('subject');
-            const messageField = document.getElementById('message');
-
-            const name = nameField ? nameField.value.trim() : '';
-            const email = emailField ? emailField.value.trim() : '';
-            const subject = subjectField ? subjectField.value.trim() : '';
-            const message = messageField ? messageField.value.trim() : '';
-
-            let hasError = false;
-
-            if (!name) {
-                showError('name', 'Veuillez entrer votre nom.');
-                hasError = true;
-            }
-
-            if (!email) {
-                showError('email', 'Veuillez entrer votre email.');
-                hasError = true;
-            } else if (!validateEmail(email)) {
-                showError('email', 'Veuillez entrer un email valide.');
-                hasError = true;
-            }
-
-            if (!subject) {
-                showError('subject', 'Veuillez entrer un sujet.');
-                hasError = true;
-            }
-
-            if (!message) {
-                showError('message', 'Veuillez écrire votre message.');
-                hasError = true;
-            }
-
-            // Si erreur : on bloque l'envoi
-            if (hasError) {
-                e.preventDefault();
-                return;
-            }
-
-            /*
-               Important :
-               On ne met PAS e.preventDefault() ici.
-               On laisse Netlify gérer l'envoi naturellement.
-               C'est nécessaire pour que Netlify Forms + CAPTCHA fonctionne bien.
-            */
-
-            // Show loading state pendant l'envoi
-            if (btnText) {
-                btnText.style.display = 'none';
-            }
-
-            if (btnLoading) {
-                btnLoading.style.display = 'inline-flex';
-            }
-
-            if (submitBtn) {
-                submitBtn.disabled = true;
-            }
-        });
+    function validateEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
+
+    function showError(fieldId, msg) {
+        const field = document.getElementById(fieldId);
+        const error = document.getElementById(fieldId + 'Error');
+        const group = field ? field.closest('.form-group') : null;
+
+        if (group) group.classList.add('has-error');
+
+        if (error) {
+            error.textContent = msg;
+            error.style.display = 'block';
+        }
+    }
+
+    function clearError(fieldId) {
+        const field = document.getElementById(fieldId);
+        const error = document.getElementById(fieldId + 'Error');
+        const group = field ? field.closest('.form-group') : null;
+
+        if (group) group.classList.remove('has-error');
+
+        if (error) {
+            error.textContent = '';
+            error.style.display = 'none';
+        }
+    }
+
+    function setLoading(isLoading) {
+        if (btnText) btnText.style.display = isLoading ? 'none' : 'inline';
+        if (btnLoading) btnLoading.style.display = isLoading ? 'inline-flex' : 'none';
+        if (submitBtn) submitBtn.disabled = isLoading;
+    }
+
+    function encodeFormData(formData) {
+        return new URLSearchParams(formData).toString();
+    }
+
+    ['name', 'email', 'subject', 'message'].forEach(id => {
+        const field = document.getElementById(id);
+        if (field) {
+            field.addEventListener('input', () => clearError(id));
+        }
+    });
+
+    contactForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        ['name', 'email', 'subject', 'message'].forEach(clearError);
+
+        if (formSuccess) formSuccess.style.display = 'none';
+        if (formFail) formFail.style.display = 'none';
+
+        const name = document.getElementById('name')?.value.trim() || '';
+        const email = document.getElementById('email')?.value.trim() || '';
+        const subject = document.getElementById('subject')?.value.trim() || '';
+        const message = document.getElementById('message')?.value.trim() || '';
+
+        let hasError = false;
+
+        if (!name) {
+            showError('name', 'Veuillez entrer votre nom.');
+            hasError = true;
+        }
+
+        if (!email) {
+            showError('email', 'Veuillez entrer votre email.');
+            hasError = true;
+        } else if (!validateEmail(email)) {
+            showError('email', 'Veuillez entrer un email valide.');
+            hasError = true;
+        }
+
+        if (!subject) {
+            showError('subject', 'Veuillez entrer un sujet.');
+            hasError = true;
+        }
+
+        if (!message) {
+            showError('message', 'Veuillez écrire votre message.');
+            hasError = true;
+        }
+
+        const captchaResponse = contactForm.querySelector('[name="g-recaptcha-response"]');
+
+        if (captchaResponse && !captchaResponse.value) {
+            hasError = true;
+
+            if (formFail) {
+                formFail.textContent = 'Veuillez valider le CAPTCHA avant d’envoyer le message.';
+                formFail.style.display = 'block';
+                formFail.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        }
+
+        if (hasError) return;
+
+        setLoading(true);
+
+        try {
+            const formData = new FormData(contactForm);
+
+            if (!formData.get('form-name')) {
+                formData.append('form-name', contactForm.getAttribute('name'));
+            }
+
+            const response = await fetch('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: encodeFormData(formData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Erreur lors de l’envoi du formulaire');
+            }
+
+            contactForm.reset();
+
+            if (window.grecaptcha && typeof window.grecaptcha.reset === 'function') {
+                window.grecaptcha.reset();
+            }
+
+            if (formSuccess) {
+                formSuccess.style.display = 'flex';
+                formSuccess.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+
+        } catch (error) {
+            if (formFail) {
+                formFail.innerHTML = 'Une erreur est survenue. Envoyez-moi directement un email : <a href="mailto:nesway.pro@gmail.com">nesway.pro@gmail.com</a>';
+                formFail.style.display = 'block';
+                formFail.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        } finally {
+            setLoading(false);
+        }
+    });
+}
+
 
     // ── FADE IN KEYFRAME injected for filter animation ──
     if (!document.getElementById('dynamic-styles')) {
