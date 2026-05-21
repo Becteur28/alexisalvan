@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NESBall — Jongle !</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Nunito:wght@400;700;900&display=swap');
+
+  :root {
+    --grass: #2d8a4e;
+    --grass-dark: #1e6636;
+    --sky: #87CEEB;
+    --pitch-line: rgba(255,255,255,0.15);
+    --accent: #FFD700;
+    --accent2: #FF6B35;
+    --hud-bg: rgba(0,0,0,0.55);
+    --white: #fff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  #gameContainer {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: none;
+  }
+
+  /* HUD */
+  #hud {
+    position: absolute;
+    top: 16px;
+    left: 0; right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0 20px;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .hud-box {
+    background: var(--hud-bg);
+    backdrop-filter: blur(8px);
+    border: 2px solid rgba(255,255,255,0.18);
+    border-radius: 16px;
+    padding: 10px 20px;
+    color: white;
+    text-align: center;
+    min-width: 110px;
+  }
+
+  .hud-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  .hud-value {
+    font-family: 'Russo One', sans-serif;
+    font-size: 34px;
+    line-height: 1;
+    color: var(--accent);
+    text-shadow: 0 0 12px rgba(255,215,0,0.5);
+  }
+
+  .hud-value.record {
+    color: #ff9f43;
+    font-size: 28px;
+  }
+
+  /* Outfit selector */
+  #outfitPanel {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 20;
+    pointer-events: all;
+  }
+
+  .outfit-btn {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.3);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    position: relative;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(6px);
+    overflow: hidden;
+  }
+
+  .outfit-btn:hover { transform: scale(1.15); border-color: var(--accent); }
+  .outfit-btn.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 18px rgba(255,215,0,0.7);
+    transform: scale(1.12);
+  }
+
+  /* Overlay screens */
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    background: linear-gradient(160deg, rgba(15,15,40,0.92) 0%, rgba(30,60,30,0.85) 100%);
+    backdrop-filter: blur(4px);
+  }
+
+  .screen h1 {
+    font-family: 'Russo One', sans-serif;
+    font-size: clamp(42px, 8vw, 76px);
+    color: var(--accent);
+    text-shadow: 0 0 40px rgba(255,215,0,0.6), 0 4px 0 #b8860b;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  .screen .subtitle {
+    font-size: 18px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 40px;
+  }
+
+  .btn-start {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    color: #1a1a2e;
+    font-family: 'Russo One', sans-serif;
+    font-size: 22px;
+    padding: 16px 52px;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 8px 30px rgba(255,107,53,0.5);
+    letter-spacing: 1px;
+  }
+
+  .btn-start:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 14px 40px rgba(255,107,53,0.7);
+  }
+
+  #gameOver .big-score {
+    font-family: 'Russo One', sans-serif;
+    font-size: clamp(60px, 12vw, 110px);
+    color: white;
+    line-height: 1;
+    text-shadow: 0 0 30px rgba(255,255,255,0.3);
+  }
+
+  #gameOver .record-notice {
+    font-size: 18px;
+    color: var(--accent);
+    margin-bottom: 30px;
+    min-height: 28px;
+    font-weight: 900;
+    letter-spacing: 1px;
+  }
+
+  /* Combo flash */
+  #comboFlash {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Russo One', sans-serif;
+    font-size: 52px;
+    color: var(--accent);
+    text-shadow: 0 0 20px rgba(255,215,0,0.8);
+    pointer-events: none;
+    opacity: 0;
+    z-index: 50;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<div id="gameContainer">
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-box">
+      <div class="hud-label">Jonglés</div>
+      <div class="hud-value" id="scoreDisplay">0</div>
+    </div>
+    <div class="hud-box" style="min-width:140px;">
+      <div class="hud-label">🏆 Record</div>
+      <div class="hud-value record" id="recordDisplay">0</div>
+    </div>
+  </div>
+
+  <!-- Outfit panel -->
+  <div id="outfitPanel">
+    <button class="outfit-btn active" data-outfit="0" title="Classique"></button>
+    <button class="outfit-btn" data-outfit="1" title="PSG"></button>
+    <button class="outfit-btn" data-outfit="2" title="Barça"></button>
+    <button class="outfit-btn" data-outfit="3" title="Brasil"></button>
+    <button class="outfit-btn" data-outfit="4" title="All Black"></button>
+  </div>
+
+  <!-- Combo -->
+  <div id="comboFlash"></div>
+
+  <!-- Start screen -->
+  <div class="screen" id="startScreen">
+    <h1>NESBall</h1>
+    <p class="subtitle">Jongle, garde la balle en l'air !</p>
+    <button class="btn-start" id="btnStart">▶ JOUER</button>
+  </div>
+
+  <!-- Game Over screen -->
+  <div class="screen" id="gameOver" style="display:none; flex-direction:column;">
+    <h1 style="margin-bottom:4px;">GAME OVER</h1>
+    <div class="big-score" id="finalScore">0</div>
+    <div style="font-size:14px; color:rgba(255,255,255,0.5); margin-bottom:4px;">jonglés</div>
+    <div class="record-notice" id="newRecordMsg"></div>
+    <button class="btn-start" id="btnRestart">↺ REJOUER</button>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const container = document.getElementById('gameContainer');
+
+// ─────── Resize ───────
+function resize() {
+  canvas.width = container.clientWidth;
+  canvas.height = container.clientHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ─────── Outfits ───────
+const OUTFITS = [
+  { name: 'Classique', shirt: '#e63946', shorts: '#1d3557', socks: '#fff', stripe: '#fff' },
+  { name: 'PSG',       shirt: '#003087', shorts: '#003087', socks: '#e63946', stripe: '#e63946' },
+  { name: 'Barça',     shirt: '#a8003b', shorts: '#003087', socks: '#ffd700', stripe: '#003087' },
+  { name: 'Brasil',    shirt: '#009c3b', shorts: '#003087', socks: '#ffd700', stripe: '#ffd700' },
+  { name: 'All Black', shirt: '#111',    shorts: '#111',    socks: '#222',   stripe: '#444' },
+];
+
+let currentOutfit = 0;
+
+document.querySelectorAll('.outfit-btn').forEach(btn => {
+  const idx = parseInt(btn.dataset.outfit);
+  btn.style.background = OUTFITS[idx].shirt;
+  btn.style.borderColor = OUTFITS[idx].stripe;
+  btn.textContent = ['🔴','🔵','🟣','🟢','⚫'][idx];
+
+  btn.addEventListener('click', () => {
+    currentOutfit = idx;
+    document.querySelectorAll('.outfit-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// ─────── State ───────
+let gameState = 'start'; // start | playing | over
+let score = 0;
+let record = parseInt(localStorage.getItem('keepyup_record') || '0');
+document.getElementById('recordDisplay').textContent = record;
+
+// ─────── Physics ───────
+const GRAVITY = 0.18;        // plus lent → plus de temps pour réagir
+const BALL_RADIUS = 22;      // balle légèrement plus grande = plus facile à toucher
+const DAMPING = 0.55;
+const PLAYER_HEIGHT = 180;
+const GROUND_Y = () => canvas.height - 80;
+
+let ball = { x: 0, y: 0, vx: 0, vy: 0, spin: 0, spinVel: 0 };
+let mouse = { x: -999, y: -999 };
+let prevMouse = { x: -999, y: -999 };
+let playerX = 0;
+let particles = [];
+let screenShake = 0;
+let lastKickTime = 0;
+
+// ─────── Mouse / Touch ───────
+function getPos(e) {
+  const r = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / r.width;
+  const scaleY = canvas.height / r.height;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return { x: (clientX - r.left) * scaleX, y: (clientY - r.top) * scaleY };
+}
+
+canvas.addEventListener('mousemove', e => {
+  prevMouse = { ...mouse };
+  mouse = getPos(e);
+  if (gameState === 'playing') tryKick();
+});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  prevMouse = { ...mouse };
+  mouse = getPos(e);
+  if (gameState === 'playing') tryKick();
+}, { passive: false });
+
+function tryKick() {
+  const dx = ball.x - mouse.x;
+  const dy = ball.y - mouse.y;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  if (dist < BALL_RADIUS + 30) {   // zone de frappe plus grande
+    const now = Date.now();
+    if (now - lastKickTime < 120) return; // debounce
+    lastKickTime = now;
+
+    const mvx = (mouse.x - prevMouse.x) * 0.7;
+    const mvy = (mouse.y - prevMouse.y) * 0.7;
+
+    // normalize kick direction away from cursor
+    const nx = dx / (dist || 1);
+    const ny = dy / (dist || 1);
+
+    ball.vx = nx * 3 + mvx * 0.4;
+    ball.vy = -14 - Math.random() * 3;   // force montante fixe + légère variation
+
+    // Amortir le mouvement horizontal pour garder la balle centrée
+    ball.vx = Math.max(-5, Math.min(5, ball.vx));
+
+    ball.spinVel = mvx * 0.12;
+    score++;
+    document.getElementById('scoreDisplay').textContent = score;
+    spawnParticles(ball.x, ball.y);
+    screenShake = 4;
+    showCombo(score);
+  }
+}
+
+// ─────── Particles ───────
+function spawnParticles(x, y) {
+  for (let i = 0; i < 10; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 2 + Math.random() * 4;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 2,
+      life: 1,
+      size: 4 + Math.random() * 6,
+      color: ['#FFD700','#FF6B35','#fff','#adff2f'][Math.floor(Math.random()*4)]
+    });
+  }
+}
+
+// ─────── Combo flash ───────
+const comboFlash = document.getElementById('comboFlash');
+let comboTimeout;
+const COMBOS = {
+  5:  '⭐ BIEN !', 10: '🔥 CHAUD !', 20: '💥 INCROYABLE !',
+  30: '👑 LÉGENDAIRE', 50: '🌟 GOD MODE', 100: '🚀 EXTRATERRESTRE'
+};
+function showCombo(n) {
+  if (COMBOS[n]) {
+    comboFlash.textContent = COMBOS[n];
+    comboFlash.style.opacity = '1';
+    clearTimeout(comboTimeout);
+    comboTimeout = setTimeout(() => comboFlash.style.opacity = '0', 1400);
+  }
+}
+
+// ─────── Init ball ───────
+function initBall() {
+  ball.x = canvas.width / 2;
+  ball.y = GROUND_Y() - PLAYER_HEIGHT * 0.55;
+  ball.vx = (Math.random() - 0.5) * 2;
+  ball.vy = -8;
+  ball.spin = 0;
+  ball.spinVel = 0;
+}
+
+// ─────── Game loop ───────
+let animId;
+
+function startGame() {
+  score = 0;
+  particles = [];
+  playerX = canvas.width / 2;
+  document.getElementById('scoreDisplay').textContent = '0';
+  initBall();
+  gameState = 'playing';
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('gameOver').style.display = 'none';
+  if (!animId) loop();
+}
+
+function endGame() {
+  gameState = 'over';
+  document.getElementById('finalScore').textContent = score;
+  const isRecord = score > record;
+  if (isRecord) {
+    record = score;
+    localStorage.setItem('keepyup_record', record);
+    document.getElementById('recordDisplay').textContent = record;
+    document.getElementById('newRecordMsg').textContent = '🏆 NOUVEAU RECORD !';
+  } else {
+    document.getElementById('newRecordMsg').textContent = record > 0 ? `Record : ${record}` : '';
+  }
+  document.getElementById('gameOver').style.display = 'flex';
+}
+
+document.getElementById('btnStart').addEventListener('click', startGame);
+document.getElementById('btnRestart').addEventListener('click', startGame);
+
+// ─────── Drawing ───────
+
+function drawBackground() {
+  const W = canvas.width, H = canvas.height;
+  // Sky gradient
+  const sky = ctx.createLinearGradient(0, 0, 0, H * 0.55);
+  sky.addColorStop(0, '#1a1a3e');
+  sky.addColorStop(1, '#2d6a8a');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, H);
+
+  // Stars
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  // deterministic stars
+  for (let i = 0; i < 60; i++) {
+    const sx = ((i * 137.508 * W / 100) % W);
+    const sy = ((i * 97.3 * H / 100) % (H * 0.45));
+    const r = (i % 3 === 0) ? 1.5 : 0.8;
+    ctx.beginPath();
+    ctx.arc(sx, sy, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Pitch
+  const groundY = GROUND_Y();
+  const pitch = ctx.createLinearGradient(0, groundY, 0, H);
+  pitch.addColorStop(0, '#2d8a4e');
+  pitch.addColorStop(1, '#1e5c35');
+  ctx.fillStyle = pitch;
+  ctx.fillRect(0, groundY, W, H - groundY);
+
+  // Pitch stripes
+  const stripeW = W / 8;
+  for (let i = 0; i < 8; i++) {
+    if (i % 2 === 0) {
+      ctx.fillStyle = 'rgba(0,0,0,0.07)';
+      ctx.fillRect(i * stripeW, groundY, stripeW, H - groundY);
+    }
+  }
+
+  // White line
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 3;
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(0, groundY);
+  ctx.lineTo(W, groundY);
+  ctx.stroke();
+
+  // Center circle on ground
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(W / 2, groundY, 70, Math.PI, Math.PI * 2);
+  ctx.stroke();
+
+  // Stadium lights
+  drawLight(W * 0.1, H * 0.12);
+  drawLight(W * 0.9, H * 0.12);
+}
+
+function drawLight(x, y) {
+  ctx.save();
+  const grd = ctx.createRadialGradient(x, y, 0, x, y, 140);
+  grd.addColorStop(0, 'rgba(255,240,180,0.25)');
+  grd.addColorStop(1, 'rgba(255,240,180,0)');
+  ctx.fillStyle = grd;
+  ctx.fillRect(x - 140, y - 140, 280, 280);
+  ctx.fillStyle = '#fffde7';
+  ctx.beginPath();
+  ctx.rect(x - 18, y - 6, 36, 8);
+  ctx.fill();
+  ctx.restore();
+}
+
+// ─── Player (cartoon) ───
+function drawPlayer(x) {
+  const out = OUTFITS[currentOutfit];
+  const groundY = GROUND_Y();
+  const scale = 1.05;
+  ctx.save();
+  ctx.translate(x, groundY);
+  ctx.scale(scale, scale);
+
+  // Shadow
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.scale(1, 0.3);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 30, 18, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // ── Legs / cleats ──
+  // Left leg
+  drawLeg(ctx, -13, -60, out, 'left');
+  // Right leg (slightly behind)
+  drawLeg(ctx, 10, -60, out, 'right');
+
+  // ── Body (shirt) ──
+  ctx.fillStyle = out.shirt;
+  // torso rounded rect
+  ctx.beginPath();
+  roundRect(ctx, -22, -130, 44, 72, 10);
+  ctx.fill();
+
+  // Stripe / number on shirt
+  ctx.fillStyle = out.stripe;
+  ctx.fillRect(-6, -128, 12, 68);
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.font = 'bold 13px Nunito';
+  ctx.textAlign = 'center';
+  ctx.fillText('10', 0, -94);
+
+  // Collar
+  ctx.fillStyle = out.stripe;
+  ctx.beginPath();
+  ctx.ellipse(0, -128, 10, 5, 0, 0, Math.PI);
+  ctx.fill();
+
+  // Shoulders
+  ctx.fillStyle = out.shirt;
+  ctx.beginPath();
+  ctx.arc(-24, -122, 10, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(24, -122, 10, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Arms
+  drawArm(ctx, -28, -118, -38, -80, out.shirt);
+  drawArm(ctx, 28, -118, 38, -80, out.shirt);
+
+  // ── Head ──
+  // Neck
+  ctx.fillStyle = '#f4a261';
+  ctx.beginPath();
+  roundRect(ctx, -8, -148, 16, 22, 4);
+  ctx.fill();
+
+  // Head
+  ctx.fillStyle = '#f4a261';
+  ctx.beginPath();
+  ctx.ellipse(0, -172, 28, 30, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Hair
+  ctx.fillStyle = '#2c1503';
+  ctx.beginPath();
+  ctx.ellipse(0, -192, 26, 14, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(-22, -174, 10, 12, -0.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(22, -174, 10, 12, 0.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Eyes
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.ellipse(-10, -172, 7, 8, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(10, -172, 7, 8, 0, 0, Math.PI * 2); ctx.fill();
+
+  ctx.fillStyle = '#1a0a00';
+  ctx.beginPath(); ctx.arc(-10, -171, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(10, -171, 4, 0, Math.PI * 2); ctx.fill();
+
+  // Pupils
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-9, -172, 1.2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(11, -172, 1.2, 0, Math.PI * 2); ctx.fill();
+
+  // Eyebrows
+  ctx.strokeStyle = '#2c1503';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-15, -182); ctx.lineTo(-5, -180); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(15, -182); ctx.lineTo(5, -180); ctx.stroke();
+
+  // Smile
+  ctx.strokeStyle = '#c1440e';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, -165, 10, 0.2, Math.PI - 0.2);
+  ctx.stroke();
+
+  // Ear
+  ctx.fillStyle = '#f4a261';
+  ctx.beginPath(); ctx.ellipse(-28, -172, 5, 7, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(28, -172, 5, 7, 0, 0, Math.PI * 2); ctx.fill();
+
+  ctx.restore();
+}
+
+function drawLeg(ctx, x, y, out, side) {
+  // Shorts
+  ctx.fillStyle = out.shorts;
+  ctx.beginPath();
+  roundRect(ctx, x - 8, y, 18, 28, 5);
+  ctx.fill();
+
+  // Sock
+  ctx.fillStyle = out.socks;
+  ctx.beginPath();
+  roundRect(ctx, x - 7, y + 26, 16, 30, 4);
+  ctx.fill();
+
+  // Sock stripe
+  ctx.fillStyle = out.stripe;
+  ctx.fillRect(x - 7, y + 30, 16, 4);
+
+  // Cleat
+  ctx.fillStyle = '#111';
+  ctx.beginPath();
+  roundRect(ctx, x - 10, y + 53, 22, 10, 4);
+  ctx.fill();
+  // Sole
+  ctx.fillStyle = '#333';
+  ctx.beginPath();
+  roundRect(ctx, x - 12, y + 58, 26, 5, 3);
+  ctx.fill();
+}
+
+function drawArm(ctx, x1, y1, x2, y2, color) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 13;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.quadraticCurveTo(x1 + (x2 - x1) * 0.3, y1 + 20, x2, y2);
+  ctx.stroke();
+  ctx.fillStyle = '#f4a261';
+  ctx.beginPath(); ctx.arc(x2, y2, 7, 0, Math.PI * 2); ctx.fill();
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+// ─── Football ───
+function drawBall(x, y, spin) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(spin);
+
+  // Shadow when near ground
+  const groundY = GROUND_Y();
+  const distToGround = groundY - y;
+  if (distToGround < 200) {
+    const alpha = 0.3 * (1 - distToGround / 200);
+    ctx.save();
+    ctx.translate(0, distToGround);
+    ctx.scale(1, 0.25);
+    ctx.fillStyle = `rgba(0,0,0,${alpha})`;
+    ctx.beginPath();
+    ctx.arc(0, 0, BALL_RADIUS * 1.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Ball base
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(0, 0, BALL_RADIUS, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Pentagons (simplified football pattern)
+  ctx.fillStyle = '#1a1a1a';
+  // Center pentagon
+  drawPentagon(ctx, 0, 0, 7);
+  // Surrounding pentagons
+  for (let i = 0; i < 5; i++) {
+    const angle = (i / 5) * Math.PI * 2 - Math.PI / 2;
+    drawPentagon(ctx, Math.cos(angle) * 11, Math.sin(angle) * 11, 5.5);
+  }
+
+  // Shine
+  const shine = ctx.createRadialGradient(-6, -7, 1, -5, -6, 12);
+  shine.addColorStop(0, 'rgba(255,255,255,0.7)');
+  shine.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = shine;
+  ctx.beginPath();
+  ctx.arc(0, 0, BALL_RADIUS, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Outline
+  ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(0, 0, BALL_RADIUS, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawPentagon(ctx, cx, cy, r) {
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
+    if (i === 0) ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+    else ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+// ─── Particles ───
+function updateParticles() {
+  particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.2;
+    p.life -= 0.05;
+    p.vx *= 0.96;
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+}
+
+// ─── Custom cursor ───
+function drawCursor(x, y) {
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+  ctx.lineWidth = 2.5;
+  ctx.shadowColor = 'rgba(255,215,0,0.8)';
+  ctx.shadowBlur = 10;
+
+  // Foot icon
+  ctx.fillStyle = 'rgba(255,215,0,0.9)';
+  ctx.beginPath();
+  ctx.ellipse(x, y, 13, 8, -0.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(180,120,0,0.7)';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Toes
+  for (let i = -2; i <= 2; i++) {
+    ctx.fillStyle = 'rgba(255,215,0,0.9)';
+    ctx.beginPath();
+    ctx.arc(x - 8 + i * 4, y - 7, 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+// ─── Main loop ───
+function loop() {
+  animId = requestAnimationFrame(loop);
+  const W = canvas.width, H = canvas.height;
+
+  ctx.save();
+  if (screenShake > 0) {
+    ctx.translate((Math.random() - 0.5) * screenShake, (Math.random() - 0.5) * screenShake);
+    screenShake -= 1;
+  }
+
+  // Draw background
+  drawBackground();
+
+  if (gameState === 'playing' || gameState === 'over') {
+    // Move player toward ball
+    const targetX = Math.max(60, Math.min(W - 60, ball.x));
+    playerX += (targetX - playerX) * 0.08;
+    drawPlayer(playerX);
+
+    // Physics update
+    if (gameState === 'playing') {
+      ball.vy += GRAVITY;
+      ball.x += ball.vx;
+      ball.y += ball.vy;
+      ball.spin += ball.spinVel;
+      ball.spinVel *= 0.97;
+      ball.vx *= 0.998;
+
+      // Wall bounce
+      if (ball.x - BALL_RADIUS < 0) {
+        ball.x = BALL_RADIUS;
+        ball.vx = Math.abs(ball.vx) * DAMPING;
+        ball.spinVel = -ball.spinVel;
+      }
+      if (ball.x + BALL_RADIUS > W) {
+        ball.x = W - BALL_RADIUS;
+        ball.vx = -Math.abs(ball.vx) * DAMPING;
+        ball.spinVel = -ball.spinVel;
+      }
+
+      // Ground = game over
+      if (ball.y + BALL_RADIUS > GROUND_Y()) {
+        endGame();
+      }
+    }
+
+    updateParticles();
+    drawBall(ball.x, ball.y, ball.spin);
+    drawCursor(mouse.x, mouse.y);
+  }
+
+  ctx.restore();
+}
+
+// ─── Kick indicator on start ───
+function drawStartHint() {
+  // just cursor on start screen
+  drawCursor(mouse.x, mouse.y);
+}
+
+// Start render loop immediately for background
+loop();
+</script>
+</body>
+</html>
